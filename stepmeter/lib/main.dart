@@ -17,9 +17,9 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  Stream<StepCount> _stepCountStream;
-  Stream<PedestrianStatus> _pedestrianStatusStream;
-  String _status = '?', _steps = '0';
+  late Stream<StepCount> _stepCountStream;
+  late Stream<PedestrianStatus> _pedestrianStatusStream;
+  String _status = '?', _steps = '?';
 
   @override
   void initState() {
@@ -73,14 +73,14 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Stepmeter'),
+          title: const Text('Pedometer example app'),
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Text(
-                'Pasos dados:',
+                'Steps taken:',
                 style: TextStyle(fontSize: 30),
               ),
               Text(
@@ -93,7 +93,7 @@ class _MyAppState extends State<MyApp> {
                 color: Colors.white,
               ),
               Text(
-                'Estado:',
+                'Pedestrian status:',
                 style: TextStyle(fontSize: 30),
               ),
               Icon(
