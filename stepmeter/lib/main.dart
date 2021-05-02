@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:pedometer/pedometer.dart';
+import 'package:percent_indicator/percent_indicator.dart';
 
 String formatDate(DateTime d) {
   return d.toString().substring(0, 19);
@@ -20,6 +21,7 @@ class _MyAppState extends State<MyApp> {
   late Stream<StepCount> _stepCountStream;
   late Stream<PedestrianStatus> _pedestrianStatusStream;
   String _status = '?', _steps = '?';
+  double percentage = 0.0;
 
   @override
   void initState() {
@@ -31,6 +33,8 @@ class _MyAppState extends State<MyApp> {
     print(event);
     setState(() {
       _steps = event.steps.toString();
+      percentage = double.parse(_steps) / 10000;
+      print(percentage);
     });
   }
 
@@ -73,28 +77,35 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Pedometer example app'),
+          title: const Text('Stepmeter'),
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Text(
-                'Steps taken:',
+              Container(
+                  child: Text(
+                'Pasos dados:',
                 style: TextStyle(fontSize: 30),
-              ),
+              )),
+              Container(
+                  margin: const EdgeInsets.only(top: 30.0, bottom: 40.0),
+                  child: new CircularPercentIndicator(
+                    radius: 200.0,
+                    lineWidth: 13.0,
+                    animation: true,
+                    percent: percentage,
+                    center: new Text(
+                      _steps,
+                      style: new TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 50.0),
+                    ),
+                    circularStrokeCap: CircularStrokeCap.round,
+                    progressColor: Colors.purple,
+                  )),
               Text(
-                _steps,
-                style: TextStyle(fontSize: 60),
-              ),
-              Divider(
-                height: 100,
-                thickness: 0,
-                color: Colors.white,
-              ),
-              Text(
-                'Pedestrian status:',
-                style: TextStyle(fontSize: 30),
+                'Estado:',
+                style: TextStyle(fontSize: 25),
               ),
               Icon(
                 _status == 'walking'
@@ -102,15 +113,36 @@ class _MyAppState extends State<MyApp> {
                     : _status == 'stopped'
                         ? Icons.accessibility_new
                         : Icons.error,
-                size: 100,
+                size: 80,
               ),
-              Center(
-                child: Text(
-                  _status,
-                  style: _status == 'walking' || _status == 'stopped'
-                      ? TextStyle(fontSize: 30)
-                      : TextStyle(fontSize: 20, color: Colors.red),
-                ),
+              Container(
+                  margin: const EdgeInsets.only(bottom: 30.0),
+                  child: Center(
+                    child: Text(
+                      _status,
+                      style: _status == 'walking' || _status == 'stopped'
+                          ? TextStyle(fontSize: 30)
+                          : TextStyle(fontSize: 20, color: Colors.red),
+                    ),
+                  )),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  new ElevatedButton(
+                    onPressed: () {
+                      _steps = "0";
+                    },
+                    child: Text("Borrar", style: TextStyle(fontSize: 20)),
+                  ),
+                  new ElevatedButton(
+                    onPressed: () {},
+                    child: Text("Guardar", style: TextStyle(fontSize: 20)),
+                  ),
+                  new ElevatedButton(
+                    onPressed: () {},
+                    child: Text("Consultas", style: TextStyle(fontSize: 20)),
+                  )
+                ],
               )
             ],
           ),
@@ -119,22 +151,3 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-
-// new CircularPercentIndicator(
-//   radius: 120.0,
-//   lineWidth: 13.0,
-//   animation: true,
-//   percent: 0.7,
-//   center: new Text(
-//     "70.0%",
-//     style:
-//         new TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),
-//   ),
-//   footer: new Text(
-//     "Sales this week",
-//     style:
-//         new TextStyle(fontWeight: FontWeight.bold, fontSize: 17.0),
-//   ),
-//   circularStrokeCap: CircularStrokeCap.round,
-//   progressColor: Colors.purple,
-// ),
