@@ -3,6 +3,9 @@ import 'dart:async';
 
 import 'package:pedometer/pedometer.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:stepmeter/step.dart';
+import 'dbService.dart';
 
 String formatDate(DateTime d) {
   return d.toString().substring(0, 19);
@@ -27,6 +30,12 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     initPlatformState();
+
+    createDB().then((value) {
+      Paso paso = new Paso(steps: 4000, date: DateTime.now());
+      createStep(paso);
+      getAllStep().then((value) => print(value));
+    });
   }
 
   void onStepCount(StepCount event) {
