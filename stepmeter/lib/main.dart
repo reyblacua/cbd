@@ -33,7 +33,7 @@ class _MyAppState extends State<MyApp> {
 
     createDB().then((value) {
       Paso paso = new Paso(steps: 4000, date: DateTime.now());
-      createStep(paso);
+      //createStep(paso);
       getAllStep().then((value) => print(value));
     });
   }
@@ -42,7 +42,7 @@ class _MyAppState extends State<MyApp> {
     print(event);
     setState(() {
       _steps = event.steps.toString();
-      percentage = double.parse(_steps) / 10000;
+      percentage = double.parse(_steps) / 1000;
       print(percentage);
     });
   }

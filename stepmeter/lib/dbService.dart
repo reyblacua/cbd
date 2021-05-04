@@ -21,26 +21,78 @@ Future<Database> createDB() async {
   return database;
 }
 
-Future<void> createStep(Paso step) async {
-  // Get a reference to the database.
+Future<Paso> getStep(date) async {
   var db = await openDatabase('steps_database.db');
-  await db.insert(
-    'steps',
-    step.toMap(),
-    conflictAlgorithm: ConflictAlgorithm.replace,
-  );
+
+  final List<Map<String, dynamic>> maps =
+      await db.query('steps', where: "date = ?", whereArgs: [date]);
+
+  List listPasos = List.generate(maps.length, (i) {
+    return Paso(
+      steps: maps[i]['steps'],
+      date: DateTime.parse(maps[i]['date']),
+    );
+  });
+
+  return listPasos[0];
 }
 
 Future<List<Paso>> getAllStep() async {
   var db = await openDatabase('steps_database.db');
-  // Query the table for all The Dogs.
+
   final List<Map<String, dynamic>> maps = await db.query('steps');
 
-  // Convert the List<Map<String, dynamic> into a List<Dog>.
   return List.generate(maps.length, (i) {
     return Paso(
       steps: maps[i]['steps'],
       date: DateTime.parse(maps[i]['date']),
     );
   });
+}
+
+Future<void> checkExists(steps) async {
+  DateTime now = new DateTime.now();
+  DateTime date = new DateTime(now.year, now.month, now.day);
+
+  Paso step = await getStep(date);
+
+  if (step != null) {
+    await createStep(steps, date);
+  } else {
+    await updateStep(steps, date);
+  }
+}
+
+Future<void> createStep(steps, date) async {
+  Paso paso = new Paso(steps: steps, date: date);
+
+  var db = await openDatabase('steps_database.db');
+  await db.insert(
+    'steps',
+    paso.toMap(),
+    conflictAlgorithm: ConflictAlgorithm.replace,
+  );
+}
+
+Future<void> updateStep(steps, date) async {
+  var db = await openDatabase('steps_database.db');
+
+  Paso paso = new Paso(steps: steps, date: date);
+
+  await db.update(
+    'steps',
+    paso.toMap(),
+    where: "date = ?",
+    whereArgs: [date],
+  );
+}
+
+Future<void> deleteStep(date) async {
+  var db = await openDatabase('steps_database.db');
+
+  await db.delete(
+    'steps',
+    where: "date = ?",
+    whereArgs: [date],
+  );
 }
