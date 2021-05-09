@@ -5,6 +5,7 @@ import 'package:pedometer/pedometer.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:stepmeter/step.dart';
+import 'package:stepmeter/consultas.dart';
 import 'dbService.dart';
 
 String formatDate(DateTime d) {
@@ -12,7 +13,7 @@ String formatDate(DateTime d) {
 }
 
 void main() {
-  runApp(MyApp());
+  runApp(MaterialApp(title: "App", home: MyApp()));
 }
 
 class MyApp extends StatefulWidget {
@@ -21,8 +22,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late Stream<StepCount> _stepCountStream;
-  late Stream<PedestrianStatus> _pedestrianStatusStream;
+  Stream<StepCount> _stepCountStream;
+  Stream<PedestrianStatus> _pedestrianStatusStream;
   String _status = '?', _steps = '?';
   double percentage = 0.0;
 
@@ -33,7 +34,9 @@ class _MyAppState extends State<MyApp> {
 
     createDB().then((value) {
       Paso paso = new Paso(steps: 4000, date: DateTime.now());
-      //createStep(paso);
+      DateTime date = DateTime(
+          DateTime.now().year, DateTime.now().month, DateTime.now().day);
+      createStep(245, date);
       getAllStep().then((value) => print(value));
     });
   }
@@ -148,7 +151,13 @@ class _MyAppState extends State<MyApp> {
                     child: Text("Guardar", style: TextStyle(fontSize: 20)),
                   ),
                   new ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => CalendarScreen()),
+                      );
+                    },
                     child: Text("Consultas", style: TextStyle(fontSize: 20)),
                   )
                 ],

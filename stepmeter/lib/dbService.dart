@@ -37,6 +37,23 @@ Future<Paso> getStep(date) async {
   return listPasos[0];
 }
 
+Future<Map<DateTime, List<dynamic>>> getAllStepFiltered(
+    fromDate, toDate) async {
+  var db = await openDatabase('steps_database.db');
+
+  final List<Map<String, dynamic>> maps = await db.query('steps',
+      where: "date BETWEEN ? AND ?", whereArgs: [fromDate, toDate]);
+
+  Map<DateTime, List<dynamic>> map = Map();
+  for (Map i in maps) {
+    List list = [];
+    list.add(i['steps']);
+    map[DateTime.parse(i['date'])] = list;
+  }
+
+  return map;
+}
+
 Future<List<Paso>> getAllStep() async {
   var db = await openDatabase('steps_database.db');
 

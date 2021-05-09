@@ -2,7 +2,7 @@ class Paso {
   int steps;
   DateTime date;
 
-  Paso({required this.steps, required this.date});
+  Paso({this.steps, this.date});
 
   Map<String, dynamic> toMap() {
     return {
