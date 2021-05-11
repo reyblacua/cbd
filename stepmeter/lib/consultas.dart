@@ -24,6 +24,7 @@ class _CalendarScreenState extends State<CalendarScreen>
 
   List _selectedEvents;
   DateTime _selectedDay;
+  Map finalMap;
 
   String formatDate(DateTime d) {
     return d.toString().substring(0, 19);
@@ -40,6 +41,7 @@ class _CalendarScreenState extends State<CalendarScreen>
     toDate = DateTime(DateTime.now().year, DateTime.now().month + 1).toString();
     pasos = getAllStepFiltered(fromDate, toDate);
     _selectedEvents = [];
+    Map finalMap = new Map<DateTime, List<Map<String, dynamic>>>();
   }
 
   @override
@@ -56,6 +58,17 @@ class _CalendarScreenState extends State<CalendarScreen>
             if (_selectedDay == null) {
               _selectedDay = DateTime(DateTime.now().year, DateTime.now().month,
                   DateTime.now().day);
+
+              finalMap = new Map<DateTime, List<Map<String, dynamic>>>();
+              snapshot.data.forEach((key, value) {
+                Map<String, dynamic> data = new Map<String, dynamic>();
+                List<Map<String, dynamic>> list = List.empty(growable: true);
+                data.putIfAbsent("name", () => value);
+                data.putIfAbsent("isDone", () => true);
+                list.add(data);
+                finalMap.putIfAbsent(key, () => list);
+              });
+
               _selectedEvents = snapshot.data[_selectedDay] ?? [];
             }
             return Container(
@@ -78,11 +91,13 @@ class _CalendarScreenState extends State<CalendarScreen>
                         'Domingo'
                       ],
                       //Se pasan las citas a los eventos para que se muestren en el calendario
-                      events: snapshot.data,
+                      events: finalMap,
                       //Al cambiar del mes, se vuelve a realizar la consulta con el nuevo rango de fechas
                       onRangeSelected: (range) {
-                        pasos = getAllStepFiltered(
-                            range.from.toString(), range.to.toString());
+                        setState(() {
+                          pasos = getAllStepFiltered(
+                              range.from.toString(), range.to.toString());
+                        });
                       },
                       //Si se selecciona una fecha, se llama al método definido anteriormente
                       onDateSelected: (date) =>

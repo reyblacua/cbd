@@ -4,9 +4,11 @@ import 'dart:async';
 import 'package:pedometer/pedometer.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:stepmeter/StepsList.dart';
 import 'package:stepmeter/step.dart';
 import 'package:stepmeter/consultas.dart';
 import 'dbService.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 String formatDate(DateTime d) {
   return d.toString().substring(0, 19);
@@ -22,23 +24,48 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  SharedPreferences preferences;
   Stream<StepCount> _stepCountStream;
   Stream<PedestrianStatus> _pedestrianStatusStream;
   String _status = '?', _steps = '?';
   double percentage = 0.0;
 
+  var counter;
+  var stepCounter;
+  var actualDay;
+
   @override
   void initState() {
     super.initState();
     initPlatformState();
+    initializePreference().whenComplete(() {
+      setState(() {
+        if (_steps != '?') {
+          this.preferences.setInt("counter", int.parse(_steps));
+        }
 
-    createDB().then((value) {
-      Paso paso = new Paso(steps: 4000, date: DateTime.now());
-      DateTime date = DateTime(
-          DateTime.now().year, DateTime.now().month, DateTime.now().day);
-      createStep(245, date);
-      getAllStep().then((value) => print(value));
+        actualDay = this.preferences.getString("day");
+        if (actualDay != null) {
+          if (actualDay != DateTime.now().toString()) {
+            _steps = "0";
+          }
+        }
+
+        DateTime now = new DateTime.now();
+        DateTime date = new DateTime(now.year, now.month, now.day);
+        this.preferences.setString("day", date.toString());
+
+        stepCounter = this.preferences.getInt("counter");
+        if (stepCounter == null) {
+          stepCounter = 0;
+          _steps = "0";
+        }
+      });
     });
+  }
+
+  Future<void> initializePreference() async {
+    this.preferences = await SharedPreferences.getInstance();
   }
 
   void onStepCount(StepCount event) {
@@ -79,7 +106,8 @@ class _MyAppState extends State<MyApp> {
         .onError(onPedestrianStatusError);
 
     _stepCountStream = Pedometer.stepCountStream;
-    _stepCountStream.listen(onStepCount).onError(onStepCountError);
+    counter = _stepCountStream.listen(onStepCount);
+    counter.onError(onStepCountError);
 
     if (!mounted) return;
   }
@@ -108,7 +136,7 @@ class _MyAppState extends State<MyApp> {
                     animation: true,
                     percent: percentage,
                     center: new Text(
-                      _steps,
+                      (int.parse(_steps) - stepCounter).toString(),
                       style: new TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 50.0),
                     ),
@@ -142,20 +170,35 @@ class _MyAppState extends State<MyApp> {
                 children: [
                   new ElevatedButton(
                     onPressed: () {
-                      _steps = "0";
+                      DateTime now = new DateTime.now();
+                      DateTime date =
+                          new DateTime(now.year, now.month, now.day);
+                      deleteStep(date);
                     },
                     child: Text("Borrar", style: TextStyle(fontSize: 20)),
                   ),
                   new ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      if (_steps.isNotEmpty) {
+                        stepCounter = this.preferences.getInt("counter");
+                        if (stepCounter == null) {
+                          stepCounter = 0;
+                        }
+
+                        var realSteps = int.parse(_steps) - stepCounter;
+                        createOrUpdate(realSteps);
+                        getAllStep().then((value) => print(value));
+                        this.preferences.setInt("counter", int.parse(_steps));
+                      }
+                    },
                     child: Text("Guardar", style: TextStyle(fontSize: 20)),
                   ),
                   new ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => CalendarScreen()),
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) =>
+                            _buildPopupDialog(context),
                       );
                     },
                     child: Text("Consultas", style: TextStyle(fontSize: 20)),
@@ -166,6 +209,52 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPopupDialog(BuildContext context) {
+    return new AlertDialog(
+      title: const Text('Seleccione una consulta'),
+      content: new Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          ElevatedButton(
+              onPressed: () {
+                getAllDaysChallengeCompleted().then((value) => print(value));
+              },
+              child: Text("Reto cumplido")),
+          ElevatedButton(
+              onPressed: () {
+                //
+              },
+              child: Text("Pasos totales")),
+          ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => StepList()),
+                );
+              },
+              child: Text("Listado")),
+          ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CalendarScreen()),
+                );
+              },
+              child: Text("Calendario")),
+        ],
+      ),
+      actions: <Widget>[
+        new ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text('Cerrar'),
+        ),
+      ],
     );
   }
 }

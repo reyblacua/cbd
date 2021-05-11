@@ -34,6 +34,10 @@ Future<Paso> getStep(date) async {
     );
   });
 
+  if (listPasos.isEmpty) {
+    return null;
+  }
+
   return listPasos[0];
 }
 
@@ -43,6 +47,22 @@ Future<Map<DateTime, List<dynamic>>> getAllStepFiltered(
 
   final List<Map<String, dynamic>> maps = await db.query('steps',
       where: "date BETWEEN ? AND ?", whereArgs: [fromDate, toDate]);
+
+  Map<DateTime, List<dynamic>> map = Map();
+  for (Map i in maps) {
+    List list = [];
+    list.add(i['steps']);
+    map[DateTime.parse(i['date'])] = list;
+  }
+
+  return map;
+}
+
+Future<Map<DateTime, List<dynamic>>> getAllDaysChallengeCompleted() async {
+  var db = await openDatabase('steps_database.db');
+
+  final List<Map<String, dynamic>> maps =
+      await db.query('steps', where: "steps >= 100 ");
 
   Map<DateTime, List<dynamic>> map = Map();
   for (Map i in maps) {
@@ -67,13 +87,13 @@ Future<List<Paso>> getAllStep() async {
   });
 }
 
-Future<void> checkExists(steps) async {
+Future<void> createOrUpdate(steps) async {
   DateTime now = new DateTime.now();
   DateTime date = new DateTime(now.year, now.month, now.day);
 
-  Paso step = await getStep(date);
+  Paso step = await getStep(date.toString());
 
-  if (step != null) {
+  if (step == null) {
     await createStep(steps, date);
   } else {
     await updateStep(steps, date);
@@ -100,7 +120,7 @@ Future<void> updateStep(steps, date) async {
     'steps',
     paso.toMap(),
     where: "date = ?",
-    whereArgs: [date],
+    whereArgs: [date.toString()],
   );
 }
 
@@ -110,6 +130,6 @@ Future<void> deleteStep(date) async {
   await db.delete(
     'steps',
     where: "date = ?",
-    whereArgs: [date],
+    whereArgs: [date.toString()],
   );
 }
