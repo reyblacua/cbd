@@ -3,12 +3,13 @@ import 'dart:async';
 
 import 'package:pedometer/pedometer.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:stepmeter/StepsList.dart';
-import 'package:stepmeter/step.dart';
 import 'package:stepmeter/consultas.dart';
+import 'challengeCompleted.dart';
 import 'dbService.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'estadistics.dart';
 
 String formatDate(DateTime d) {
   return d.toString().substring(0, 19);
@@ -33,6 +34,8 @@ class _MyAppState extends State<MyApp> {
   var counter;
   var stepCounter;
   var actualDay;
+  var realSteps;
+  var challenge;
 
   @override
   void initState() {
@@ -51,15 +54,22 @@ class _MyAppState extends State<MyApp> {
           }
         }
 
+        challenge = 10000;
         DateTime now = new DateTime.now();
         DateTime date = new DateTime(now.year, now.month, now.day);
         this.preferences.setString("day", date.toString());
+
+        createStep(200, new DateTime(now.year, DateTime.april, now.day));
+        createStep(347, new DateTime(now.year, now.month, 10));
 
         stepCounter = this.preferences.getInt("counter");
         if (stepCounter == null) {
           stepCounter = 0;
           _steps = "0";
         }
+        int.parse(_steps) == 0
+            ? realSteps = stepCounter
+            : realSteps = int.parse(_steps) - stepCounter;
       });
     });
   }
@@ -69,16 +79,16 @@ class _MyAppState extends State<MyApp> {
   }
 
   void onStepCount(StepCount event) {
-    print(event);
     setState(() {
       _steps = event.steps.toString();
-      percentage = double.parse(_steps) / 1000;
-      print(percentage);
+      percentage = double.parse(realSteps.toString()) / challenge;
+      if (percentage > 1 || percentage < 0) {
+        challenge = challenge + 5000;
+      }
     });
   }
 
   void onPedestrianStatusChanged(PedestrianStatus event) {
-    print(event);
     setState(() {
       _status = event.status;
     });
@@ -187,8 +197,6 @@ class _MyAppState extends State<MyApp> {
 
                         var realSteps = int.parse(_steps) - stepCounter;
                         createOrUpdate(realSteps);
-                        getAllStep().then((value) => print(value));
-                        this.preferences.setInt("counter", int.parse(_steps));
                       }
                     },
                     child: Text("Guardar", style: TextStyle(fontSize: 20)),
@@ -221,14 +229,20 @@ class _MyAppState extends State<MyApp> {
         children: <Widget>[
           ElevatedButton(
               onPressed: () {
-                getAllDaysChallengeCompleted().then((value) => print(value));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ChallengeCompleted()),
+                );
               },
               child: Text("Reto cumplido")),
           ElevatedButton(
               onPressed: () {
-                //
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Estadistics()),
+                );
               },
-              child: Text("Pasos totales")),
+              child: Text("Estadísticas")),
           ElevatedButton(
               onPressed: () {
                 Navigator.push(

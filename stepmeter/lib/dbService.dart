@@ -58,20 +58,18 @@ Future<Map<DateTime, List<dynamic>>> getAllStepFiltered(
   return map;
 }
 
-Future<Map<DateTime, List<dynamic>>> getAllDaysChallengeCompleted() async {
+Future<List<Paso>> getAllDaysChallengeCompleted() async {
   var db = await openDatabase('steps_database.db');
 
   final List<Map<String, dynamic>> maps =
       await db.query('steps', where: "steps >= 100 ");
 
-  Map<DateTime, List<dynamic>> map = Map();
-  for (Map i in maps) {
-    List list = [];
-    list.add(i['steps']);
-    map[DateTime.parse(i['date'])] = list;
-  }
-
-  return map;
+  return List.generate(maps.length, (i) {
+    return Paso(
+      steps: maps[i]['steps'],
+      date: DateTime.parse(maps[i]['date']),
+    );
+  });
 }
 
 Future<List<Paso>> getAllStep() async {
@@ -132,4 +130,56 @@ Future<void> deleteStep(date) async {
     where: "date = ?",
     whereArgs: [date.toString()],
   );
+}
+
+Future<int> sumSteps() async {
+  var db = await openDatabase('steps_database.db');
+
+  final sum = await db.rawQuery("SELECT sum(steps) as sum FROM steps");
+  return sum[0]["sum"];
+}
+
+Future<int> minSteps() async {
+  var db = await openDatabase('steps_database.db');
+
+  final min = await db.rawQuery("SELECT min(steps) as min FROM steps");
+  return min[0]["min"];
+}
+
+Future<int> maxSteps() async {
+  var db = await openDatabase('steps_database.db');
+
+  final max = await db.rawQuery("SELECT max(steps) as max FROM steps");
+  return max[0]["max"];
+}
+
+Future<double> averageSteps() async {
+  var db = await openDatabase('steps_database.db');
+
+  final avg = await db.rawQuery("SELECT avg(steps) as avg FROM steps");
+  return avg[0]["avg"];
+}
+
+Future<int> daysRegistred() async {
+  var db = await openDatabase('steps_database.db');
+
+  final count = await db.rawQuery("SELECT count(*) as count FROM steps");
+  return count[0]["count"];
+}
+
+Future<Map<String, dynamic>> getEstadistics() async {
+  Map<String, dynamic> lista = new Map();
+  int totalPasos = await sumSteps();
+  int maxPasos = await maxSteps();
+  int minPasos = await minSteps();
+  double mediaPasos = await averageSteps();
+  int diasRegistrados = await daysRegistred();
+
+  lista.putIfAbsent("total", () => totalPasos);
+  lista.putIfAbsent("max", () => maxPasos);
+  lista.putIfAbsent("min", () => minPasos);
+  lista.putIfAbsent("avg", () => mediaPasos);
+  lista.putIfAbsent("dias", () => diasRegistrados);
+
+  return lista;
 }

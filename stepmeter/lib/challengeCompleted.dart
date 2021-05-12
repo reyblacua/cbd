@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dbService.dart';
 
-class StepList extends StatefulWidget {
+class ChallengeCompleted extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    return _StepListState();
+    return _ChallengeCompletedState();
   }
 }
 
-class _StepListState extends State<StepList> {
+class _ChallengeCompletedState extends State<ChallengeCompleted> {
   var pasos;
 
   @override
   void initState() {
     super.initState();
-    pasos = getAllStep();
+    pasos = getAllDaysChallengeCompleted();
   }
 
   @override
@@ -49,14 +49,6 @@ class _StepListState extends State<StepList> {
                                     " pasos",
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 20)),
-                            IconButton(
-                                icon: Icon(Icons.delete),
-                                onPressed: () {
-                                  setState(() {
-                                    deleteStep(snapshot.data[index].date);
-                                    pasos = getAllStep();
-                                  });
-                                })
                           ])
                         ]));
                   },

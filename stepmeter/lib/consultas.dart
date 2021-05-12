@@ -41,7 +41,6 @@ class _CalendarScreenState extends State<CalendarScreen>
     toDate = DateTime(DateTime.now().year, DateTime.now().month + 1).toString();
     pasos = getAllStepFiltered(fromDate, toDate);
     _selectedEvents = [];
-    Map finalMap = new Map<DateTime, List<Map<String, dynamic>>>();
   }
 
   @override
@@ -156,7 +155,7 @@ class _CalendarScreenState extends State<CalendarScreen>
               padding:
                   const EdgeInsets.symmetric(horizontal: 0.0, vertical: 3.0),
               child: ListTile(
-                title: Text(name),
+                title: Text(name + " pasos"),
                 onTap: () {},
               ),
             );
