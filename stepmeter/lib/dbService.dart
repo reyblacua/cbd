@@ -41,7 +41,7 @@ Future<Paso> getStep(date) async {
   return listPasos[0];
 }
 
-Future<Map<DateTime, List<dynamic>>> getAllStepFiltered(
+Future<Map<DateTime, List<Map<String, dynamic>>>> getAllStepFiltered(
     fromDate, toDate) async {
   var db = await openDatabase('steps_database.db');
 
@@ -55,14 +55,24 @@ Future<Map<DateTime, List<dynamic>>> getAllStepFiltered(
     map[DateTime.parse(i['date'])] = list;
   }
 
-  return map;
+  var finalMap = new Map<DateTime, List<Map<String, dynamic>>>();
+  map.forEach((key, value) {
+    Map<String, dynamic> data = new Map<String, dynamic>();
+    List<Map<String, dynamic>> list = List.empty(growable: true);
+    data.putIfAbsent("name", () => value);
+    data.putIfAbsent("isDone", () => true);
+    list.add(data);
+    finalMap.putIfAbsent(key, () => list);
+  });
+
+  return finalMap;
 }
 
 Future<List<Paso>> getAllDaysChallengeCompleted() async {
   var db = await openDatabase('steps_database.db');
 
   final List<Map<String, dynamic>> maps =
-      await db.query('steps', where: "steps >= 100 ");
+      await db.query('steps', where: "steps >= 200 ");
 
   return List.generate(maps.length, (i) {
     return Paso(
@@ -77,12 +87,14 @@ Future<List<Paso>> getAllStep() async {
 
   final List<Map<String, dynamic>> maps = await db.query('steps');
 
-  return List.generate(maps.length, (i) {
+  var list = List.generate(maps.length, (i) {
     return Paso(
       steps: maps[i]['steps'],
       date: DateTime.parse(maps[i]['date']),
     );
   });
+  list.sort((a, b) => a.date.compareTo(b.date));
+  return list;
 }
 
 Future<void> createOrUpdate(steps) async {

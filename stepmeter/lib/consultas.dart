@@ -58,16 +58,6 @@ class _CalendarScreenState extends State<CalendarScreen>
               _selectedDay = DateTime(DateTime.now().year, DateTime.now().month,
                   DateTime.now().day);
 
-              finalMap = new Map<DateTime, List<Map<String, dynamic>>>();
-              snapshot.data.forEach((key, value) {
-                Map<String, dynamic> data = new Map<String, dynamic>();
-                List<Map<String, dynamic>> list = List.empty(growable: true);
-                data.putIfAbsent("name", () => value);
-                data.putIfAbsent("isDone", () => true);
-                list.add(data);
-                finalMap.putIfAbsent(key, () => list);
-              });
-
               _selectedEvents = snapshot.data[_selectedDay] ?? [];
             }
             return Container(
@@ -90,7 +80,7 @@ class _CalendarScreenState extends State<CalendarScreen>
                         'Domingo'
                       ],
                       //Se pasan las citas a los eventos para que se muestren en el calendario
-                      events: finalMap,
+                      events: snapshot.data,
                       //Al cambiar del mes, se vuelve a realizar la consulta con el nuevo rango de fechas
                       onRangeSelected: (range) {
                         setState(() {
@@ -145,7 +135,7 @@ class _CalendarScreenState extends State<CalendarScreen>
           itemCount: _selectedEvents.length,
           itemBuilder: (BuildContext context, int index) {
             //Se implementan las traducciones de las razones de cita en la vista calendario
-            var name = _selectedEvents[index].toString();
+            var name = _selectedEvents[index]["name"][0].toString();
             return Container(
               decoration: BoxDecoration(
                 border: Border(

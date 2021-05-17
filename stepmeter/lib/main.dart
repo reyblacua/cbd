@@ -28,13 +28,14 @@ class _MyAppState extends State<MyApp> {
   SharedPreferences preferences;
   Stream<StepCount> _stepCountStream;
   Stream<PedestrianStatus> _pedestrianStatusStream;
-  String _status = '?', _steps = '?';
+  String _status = '?';
+  int _steps = 0;
   double percentage = 0.0;
 
   var counter;
   var stepCounter;
   var actualDay;
-  var realSteps;
+  var realSteps = 0;
   var challenge;
 
   @override
@@ -43,33 +44,30 @@ class _MyAppState extends State<MyApp> {
     initPlatformState();
     initializePreference().whenComplete(() {
       setState(() {
-        if (_steps != '?') {
-          this.preferences.setInt("counter", int.parse(_steps));
+        if (_steps != 0) {
+          this.preferences.setInt("counter", _steps);
         }
 
         actualDay = this.preferences.getString("day");
         if (actualDay != null) {
           if (actualDay != DateTime.now().toString()) {
-            _steps = "0";
+            _steps = 0;
+            realSteps = 0;
           }
+        } else {
+          DateTime now = new DateTime.now();
+          DateTime date = new DateTime(now.year, now.month, now.day);
+          this.preferences.setString("day", date.toString());
         }
 
         challenge = 10000;
-        DateTime now = new DateTime.now();
-        DateTime date = new DateTime(now.year, now.month, now.day);
-        this.preferences.setString("day", date.toString());
-
-        createStep(200, new DateTime(now.year, DateTime.april, now.day));
-        createStep(347, new DateTime(now.year, now.month, 10));
 
         stepCounter = this.preferences.getInt("counter");
         if (stepCounter == null) {
           stepCounter = 0;
-          _steps = "0";
+          _steps = 0;
         }
-        int.parse(_steps) == 0
-            ? realSteps = stepCounter
-            : realSteps = int.parse(_steps) - stepCounter;
+        _steps == 0 ? realSteps = 0 : realSteps = _steps - stepCounter;
       });
     });
   }
@@ -80,7 +78,19 @@ class _MyAppState extends State<MyApp> {
 
   void onStepCount(StepCount event) {
     setState(() {
-      _steps = event.steps.toString();
+      actualDay = this.preferences.getString("day");
+      if (actualDay != null) {
+        DateTime now = new DateTime.now();
+        String today = new DateTime(now.year, now.month, now.day).toString();
+        if (actualDay.toString() != today) {
+          this.preferences.setInt("counter", _steps);
+          DateTime now = new DateTime.now();
+          DateTime date = new DateTime(now.year, now.month, now.day);
+          this.preferences.setString("day", date.toString());
+        }
+      }
+      _steps = event.steps;
+      realSteps = _steps - stepCounter;
       percentage = double.parse(realSteps.toString()) / challenge;
       if (percentage > 1 || percentage < 0) {
         challenge = challenge + 5000;
@@ -105,7 +115,7 @@ class _MyAppState extends State<MyApp> {
   void onStepCountError(error) {
     print('onStepCountError: $error');
     setState(() {
-      _steps = 'Step Count not available';
+      _steps = 0;
     });
   }
 
@@ -146,7 +156,7 @@ class _MyAppState extends State<MyApp> {
                     animation: true,
                     percent: percentage,
                     center: new Text(
-                      (int.parse(_steps) - stepCounter).toString(),
+                      realSteps.toString(),
                       style: new TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 50.0),
                     ),
@@ -189,15 +199,16 @@ class _MyAppState extends State<MyApp> {
                   ),
                   new ElevatedButton(
                     onPressed: () {
-                      if (_steps.isNotEmpty) {
-                        stepCounter = this.preferences.getInt("counter");
-                        if (stepCounter == null) {
-                          stepCounter = 0;
-                        }
+                      setState(() {
+                        if (_steps != 0) {
+                          stepCounter = this.preferences.getInt("counter");
+                          if (stepCounter == null) {
+                            stepCounter = 0;
+                          }
 
-                        var realSteps = int.parse(_steps) - stepCounter;
-                        createOrUpdate(realSteps);
-                      }
+                          createOrUpdate(realSteps);
+                        }
+                      });
                     },
                     child: Text("Guardar", style: TextStyle(fontSize: 20)),
                   ),
