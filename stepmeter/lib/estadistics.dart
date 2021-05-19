@@ -73,7 +73,7 @@ class _EstadisticsState extends State<Estadistics> {
                         Text("Media de pasos: ",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 20)),
-                        Text(snapshot.data["avg"].toString(),
+                        Text(snapshot.data["avg"].toStringAsFixed(2),
                             style: TextStyle(fontSize: 20))
                       ]),
                     ),

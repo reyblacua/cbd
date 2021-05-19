@@ -44,12 +44,6 @@ class _MyAppState extends State<MyApp> {
     initPlatformState();
     initializePreference().whenComplete(() {
       setState(() {
-        //if (_steps != 0) {
-        //  this.preferences.setInt("counter", _steps);
-        //}else{
-        //  this.preferences.setInt("counter", 0);
-        //}
-
         if (this.preferences.getInt("counter") == null) {
           this.preferences.setInt("counter", 0);
         }
@@ -194,6 +188,8 @@ class _MyAppState extends State<MyApp> {
                         realSteps = 0;
                         this.preferences.setInt("counter", _steps);
                         stepCounter = this.preferences.getInt("counter");
+                        percentage =
+                            double.parse(realSteps.toString()) / challenge;
                       });
                     },
                     child: Text("Borrar", style: TextStyle(fontSize: 20)),
