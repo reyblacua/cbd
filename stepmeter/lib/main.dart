@@ -44,30 +44,25 @@ class _MyAppState extends State<MyApp> {
     initPlatformState();
     initializePreference().whenComplete(() {
       setState(() {
-        if (_steps != 0) {
-          this.preferences.setInt("counter", _steps);
+        //if (_steps != 0) {
+        //  this.preferences.setInt("counter", _steps);
+        //}else{
+        //  this.preferences.setInt("counter", 0);
+        //}
+
+        if (this.preferences.getInt("counter") == null) {
+          this.preferences.setInt("counter", 0);
         }
 
-        actualDay = this.preferences.getString("day");
-        if (actualDay != null) {
-          if (actualDay != DateTime.now().toString()) {
-            _steps = 0;
-            realSteps = 0;
-          }
-        } else {
+        if (this.preferences.getString("day") == null) {
           DateTime now = new DateTime.now();
           DateTime date = new DateTime(now.year, now.month, now.day);
           this.preferences.setString("day", date.toString());
         }
 
-        challenge = 10000;
-
         stepCounter = this.preferences.getInt("counter");
-        if (stepCounter == null) {
-          stepCounter = 0;
-          _steps = 0;
-        }
-        _steps == 0 ? realSteps = 0 : realSteps = _steps - stepCounter;
+
+        challenge = 10000;
       });
     });
   }
@@ -78,18 +73,19 @@ class _MyAppState extends State<MyApp> {
 
   void onStepCount(StepCount event) {
     setState(() {
+      _steps = event.steps;
       actualDay = this.preferences.getString("day");
+
       if (actualDay != null) {
         DateTime now = new DateTime.now();
         String today = new DateTime(now.year, now.month, now.day).toString();
         if (actualDay.toString() != today) {
           this.preferences.setInt("counter", _steps);
-          DateTime now = new DateTime.now();
-          DateTime date = new DateTime(now.year, now.month, now.day);
-          this.preferences.setString("day", date.toString());
+          this.preferences.setString("day", today.toString());
+          stepCounter = this.preferences.getInt("counter");
         }
       }
-      _steps = event.steps;
+
       realSteps = _steps - stepCounter;
       percentage = double.parse(realSteps.toString()) / challenge;
       if (percentage > 1 || percentage < 0) {
@@ -190,10 +186,15 @@ class _MyAppState extends State<MyApp> {
                 children: [
                   new ElevatedButton(
                     onPressed: () {
-                      DateTime now = new DateTime.now();
-                      DateTime date =
-                          new DateTime(now.year, now.month, now.day);
-                      deleteStep(date);
+                      setState(() {
+                        DateTime now = new DateTime.now();
+                        DateTime date =
+                            new DateTime(now.year, now.month, now.day);
+                        deleteStep(date);
+                        realSteps = 0;
+                        this.preferences.setInt("counter", _steps);
+                        stepCounter = this.preferences.getInt("counter");
+                      });
                     },
                     child: Text("Borrar", style: TextStyle(fontSize: 20)),
                   ),
