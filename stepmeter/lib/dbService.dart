@@ -72,7 +72,7 @@ Future<List<Paso>> getAllDaysChallengeCompleted() async {
   var db = await openDatabase('steps_database.db');
 
   final List<Map<String, dynamic>> maps =
-      await db.query('steps', where: "steps >= 200 ");
+      await db.query('steps', where: "steps >= 10000 ");
 
   return List.generate(maps.length, (i) {
     return Paso(
